@@ -26,7 +26,7 @@ import java.util.List;
  *
  *   &#064;After
  *   public void cleanup() {
- *     out.cleanup();
+ *     project.cleanup();
  *   }
  *
  *   &#064;Test
