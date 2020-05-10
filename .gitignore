@@ -1,0 +1,9 @@
+# Vim
+.*.swp
+.*.swo
+
+# Maven
+target/
+
+# Ctags
+tags
