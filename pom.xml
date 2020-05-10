@@ -12,6 +12,15 @@
     A library that uses a build system agnostic description of a Java package to generate temporary, build system specific folder structures.
   </description>
 
+  <url>https://github.com/nicolascouvrat/javapackagetest</url>
+
+  <scm>
+    <url>http://github.com/nicolascouvrat/javapackagetest</url>
+    <connection>scm:git:git://github.com/nicolascouvrat/javapackagetest</connection>
+    <developerConnection>scm:git:ssh://git@github.com/nicolascouvrat/javapackagetest.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.12</junit.version>
