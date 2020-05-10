@@ -80,3 +80,7 @@ public class MyToolTest {
   }
 }
 ```
+
+## Credits
+
+This library is inspired by a similar one found in Go's internal `packages` (`go/packages/packagetest`).
