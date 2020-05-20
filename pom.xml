@@ -22,6 +22,15 @@
 
   <url>https://github.com/nicolascouvrat/javapackagetest</url>
 
+  <developers>
+    <developer>
+      <id>nicolascouvrat</id>
+      <email>nicolas.d.couvrat@gmail.com</email>
+      <organization>Nikodoko</organization>
+      <organizationUrl>https://www.nikodoko.com</organizationUrl>
+    </developer>
+  </developers>
+
   <scm>
     <url>http://github.com/nicolascouvrat/javapackagetest</url>
     <connection>scm:git:git://github.com/nicolascouvrat/javapackagetest</connection>
