@@ -64,8 +64,10 @@ public class MyToolTest {
     // You now how the following structure to work with
     // some_temporary_folder
     //  |
+    //  - pom.xml
     //  - myfirstmodule
     //  | |
+    //  | - pom.xml
     //  | - src/main/java/my/first/module
     //  |   |
     //  |   - A.java
@@ -74,6 +76,7 @@ public class MyToolTest {
     //  |     - B.java
     //  - mysecondmodule
     //    |
+    //    - pom.xml
     //    - src/main/java/my/second/module
     //      |
     //      - C.java

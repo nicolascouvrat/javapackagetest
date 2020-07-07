@@ -44,11 +44,16 @@
     <java.version>1.8</java.version>
     <guava.version>28.1-jre</guava.version>
     <truth.version>1.0.1</truth.version>
+    <maven.core.version>3.6.3</maven.core.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <!-- Google Guava -->
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <version>${maven.core.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
@@ -71,7 +76,10 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- Google Guava -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>

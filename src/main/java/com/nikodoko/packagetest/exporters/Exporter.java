@@ -1,6 +1,10 @@
 package com.nikodoko.packagetest.exporters;
 
+import com.nikodoko.packagetest.Exported;
+import com.nikodoko.packagetest.Module;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * {@code Exporter} implementations are responsible for turning generic project descriptions into
@@ -17,12 +21,12 @@ public interface Exporter {
   public String name();
 
   /**
-   * Reports the system path of a file, given a root directory, a module and a path fragment.
+   * Exports a project to a given {@code root} directory.
    *
-   * @param root a directory
-   * @param module a module name
-   * @param fragment a path fragment
-   * @return the path of the designated file
+   * @param modules a list of modules forming a project
+   * @param root a path to a root directory
+   * @return information about the successful export
+   * @throws IOException if an I/O error occurs
    */
-  public Path filename(Path root, String module, String fragment);
+  public Exported export(List<Module> modules, Path root) throws IOException;
 }

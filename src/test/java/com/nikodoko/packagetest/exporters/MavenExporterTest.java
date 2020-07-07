@@ -22,7 +22,7 @@ public class MavenExporterTest {
 
   @After
   public void cleanup() throws Exception {
-    out.cleanup();
+    // out.cleanup();
   }
 
   @Test
