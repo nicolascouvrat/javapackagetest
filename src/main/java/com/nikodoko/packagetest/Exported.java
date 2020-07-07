@@ -25,7 +25,7 @@ public class Exported {
    *
    * @param root its root directory
    */
-  Exported(Path root) {
+  public Exported(Path root) {
     this.root = root;
   }
 
@@ -56,7 +56,7 @@ public class Exported {
    * @param fragment a path fragment
    * @param path the path at which the file has been written
    */
-  void markAsWritten(String module, String fragment, Path path) {
+  public void markAsWritten(String module, String fragment, Path path) {
     checkNotNull(path, "why mark a null path as written?");
     Map<String, Path> moduleFiles = written.get(module);
     if (moduleFiles == null) {
