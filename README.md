@@ -54,6 +54,7 @@ public class MyToolTest {
     // A second module
     Map<String, String> filesSecond = new HashMap<>();
     filesSecond.put("C.java", "package my.second.module;");
+    filesSecond.put("CTest.java", "package my.second.module;");
     Module m2 = new Module("my.second.module", filesSecond);
 
     List<Module> modules = new ArrayList<>();
@@ -80,6 +81,9 @@ public class MyToolTest {
     //    - src/main/java/my/second/module
     //      |
     //      - C.java
+    //    - src/test/java/my/second/module
+    //      |
+    //      - CTest.java
   }
 }
 ```

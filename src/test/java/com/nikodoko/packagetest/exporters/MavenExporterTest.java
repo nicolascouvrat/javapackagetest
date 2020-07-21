@@ -34,6 +34,8 @@ public class MavenExporterTest {
                 ImmutableMap.of(
                     "a/A.java",
                     "package an.awesome.module.a;",
+                    "a/ATest.java",
+                    "package an.awesome.module.a;",
                     "b/B.java",
                     "package an.awesome.module.b;")),
             new Module("an.other.module", ImmutableMap.of("C.java", "package an.other.module;")));
@@ -52,12 +54,18 @@ public class MavenExporterTest {
     checkWritten(
         out,
         "an.awesome.module",
+        "a/ATest.java",
+        "anawesomemodule/src/test/java/an/awesome/module/a/ATest.java");
+    checkWritten(
+        out,
+        "an.awesome.module",
         "b/B.java",
         "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
     checkWritten(
         out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
 
     checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
+    checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
     checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
   }
