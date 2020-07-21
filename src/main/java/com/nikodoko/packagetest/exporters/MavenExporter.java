@@ -11,12 +11,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelWriter;
 import org.apache.maven.project.MavenProject;
 
 class MavenExporter implements Exporter {
   private static final String NAME = "MAVEN_EXPORTER";
+  private static final Pattern TEST_FILE_RE = Pattern.compile(".+Test\\.java");
+  private static final String MAIN_DIRECTORY = "src/main/java";
+  private static final String TEST_DIRECTORY = "src/test/java";
   private static final String PROJECT_ROOT_ARTIFACT_ID = "packagetest-maven";
   private static final String PROJECT_GROUP_ID = "packagetest.maven";
   private static final String PROJECT_MODEL_VERSION = "4.0.0";
@@ -70,7 +75,13 @@ class MavenExporter implements Exporter {
   // module name, so generate one from the module name (supposed to be your.custom.path in the
   // previous example).
   private Path relativePath(String module, String fragment) {
-    return Paths.get(moduleName(module), "src/main/java", module.replace(".", "/"), fragment);
+    String directory = MAIN_DIRECTORY;
+    Matcher m = TEST_FILE_RE.matcher(fragment);
+    if (m.matches()) {
+      directory = TEST_DIRECTORY;
+    }
+
+    return Paths.get(moduleName(module), directory, module.replace(".", "/"), fragment);
   }
 
   private String moduleName(String module) {
