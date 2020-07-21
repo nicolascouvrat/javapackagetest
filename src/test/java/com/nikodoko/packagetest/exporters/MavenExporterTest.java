@@ -12,7 +12,13 @@ import com.nikodoko.packagetest.Module;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.DefaultModelReader;
 import org.junit.After;
 import org.junit.Test;
 
@@ -69,33 +75,50 @@ public class MavenExporterTest {
     checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
     checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
+    checkPomContent(out, "an.awesome.module", checkDependencies());
+    checkPomContent(out, "an.other.module", checkDependencies());
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
       throws Exception {
-    Optional<Path> written = result.file(module, fragment);
-    if (!written.isPresent()) {
-      fail("file " + fragment + " not written for module " + module);
-    }
-
-    String got = null;
-    try {
-      got = new String(Files.readAllBytes(written.get()), UTF_8);
-    } catch (IOException e) {
-      fail("cannot read file " + written);
-    }
-
+    Path written = getFile(result, module, fragment);
+    String got = new String(Files.readAllBytes(written), UTF_8);
     assertThat(got).isEqualTo(expected);
   }
 
   private void checkWritten(Exported result, String module, String fragment, String expected)
       throws Exception {
     Path expect = result.root().resolve(expected);
-    Optional<Path> got = result.file(module, fragment);
-    if (!got.isPresent()) {
+    Path got = getFile(result, module, fragment);
+    assertThat((Object) got).isEqualTo(expect);
+  }
+
+  private void checkPomContent(Exported result, String module, Consumer<Model> checker)
+      throws Exception {
+    Path written = getFile(result, module, "pom.xml");
+    Model model = new DefaultModelReader().read(written.toFile(), null);
+    checker.accept(model);
+  }
+
+  private Path getFile(Exported result, String module, String fragment) {
+    Optional<Path> written = result.file(module, fragment);
+    if (!written.isPresent()) {
       fail("file " + fragment + " not written for module " + module);
     }
 
-    assertThat((Object) got.get()).isEqualTo(expect);
+    return written.get();
+  }
+
+  private Consumer<Model> checkDependencies(String... params) {
+    List<Dependency> deps = new ArrayList<>();
+    for (int i = 0; i < params.length / 3; i++) {
+      Dependency dep = new Dependency();
+      dep.setGroupId(params[i]);
+      dep.setArtifactId(params[i + 1]);
+      dep.setVersion(params[i + 2]);
+      deps.add(dep);
+    }
+
+    return model -> assertThat(model.getDependencies()).containsExactlyElementsIn(deps);
   }
 }
