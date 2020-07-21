@@ -62,6 +62,8 @@ public class MavenExporterTest {
         "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
     checkWritten(
         out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
+    checkWritten(out, "an.awesome.module", "pom.xml", "anawesomemodule/pom.xml");
+    checkWritten(out, "an.other.module", "pom.xml", "anothermodule/pom.xml");
 
     checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
     checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");

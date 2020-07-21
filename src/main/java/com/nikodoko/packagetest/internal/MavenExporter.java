@@ -12,9 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelWriter;
-import org.apache.maven.project.MavenProject;
 
 class MavenExporter implements Exporter {
   private static final String NAME = "MAVEN_EXPORTER";
@@ -34,7 +34,6 @@ class MavenExporter implements Exporter {
   @Override
   public Exported export(Path root, Module... modules) throws IOException {
     Exported to = new Exported(root);
-    writePom(createPom(PROJECT_ROOT_ARTIFACT_ID), root, "");
     for (Module m : modules) {
       exportModule(m, to);
     }
@@ -43,7 +42,7 @@ class MavenExporter implements Exporter {
   }
 
   private void exportModule(Module module, Exported to) throws IOException {
-    writePom(createPom(artifactName(module.name())), to.root(), module.name());
+    writePom(module, to, minimalPom(artifactName(module.name())));
     for (Module.File f : module.files()) {
       Path fullpath = filename(to.root(), module.name(), f.fragment());
       Files.createDirectories(fullpath.getParent());
@@ -91,18 +90,19 @@ class MavenExporter implements Exporter {
     return module.replace(".", "-");
   }
 
-  private MavenProject createPom(String artifactId) {
-    MavenProject p = new MavenProject();
-    p.setModelVersion(PROJECT_MODEL_VERSION);
-    p.setGroupId(PROJECT_GROUP_ID);
-    p.setVersion(PROJECT_VERSION);
-    p.setArtifactId(artifactId);
-    return p;
+  private Model minimalPom(String artifactId) {
+    Model m = new Model();
+    m.setModelVersion(PROJECT_MODEL_VERSION);
+    m.setGroupId(PROJECT_GROUP_ID);
+    m.setVersion(PROJECT_VERSION);
+    m.setArtifactId(artifactId);
+    return m;
   }
 
-  private void writePom(MavenProject pom, Path root, String module) throws IOException {
+  private void writePom(Module module, Exported to, Model pom) throws IOException {
     ModelWriter writer = new DefaultModelWriter();
-    Path to = root.resolve(Paths.get(moduleName(module), "pom.xml"));
-    writer.write(to.toFile(), null, pom.getModel());
+    Path target = to.root().resolve(Paths.get(moduleName(module.name()), "pom.xml"));
+    writer.write(target.toFile(), null, pom);
+    to.markAsWritten(module.name(), "pom.xml", target);
   }
 }
