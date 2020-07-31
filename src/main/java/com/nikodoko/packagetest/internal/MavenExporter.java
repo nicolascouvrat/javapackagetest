@@ -1,4 +1,4 @@
-package com.nikodoko.packagetest.exporters;
+package com.nikodoko.packagetest.internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

@@ -1,7 +1,7 @@
 package com.nikodoko.packagetest;
 
-import com.nikodoko.packagetest.exporters.Exporter;
-import com.nikodoko.packagetest.exporters.ExporterFactory;
+import com.nikodoko.packagetest.internal.Exporter;
+import com.nikodoko.packagetest.internal.ExporterFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -1,4 +1,4 @@
-package com.nikodoko.packagetest.exporters;
+package com.nikodoko.packagetest.internal;
 
 import com.nikodoko.packagetest.BuildSystem;
 
