@@ -1,8 +1,6 @@
 package com.nikodoko.packagetest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * A system agnostic description of a java module.
@@ -27,18 +25,30 @@ import java.util.Map;
  * "util/B.java"}) for the other.
  */
 public class Module {
-  private String name;
-  private Map<String, String> files;
+  private final String name;
+  private File[] files = new File[] {};
+
+  private Module(String name) {
+    this.name = name;
+  }
+
+  /** Returns a {@code Module} named {@code name} and containing no files. */
+  public static Module named(String name) {
+    return new Module(name);
+  }
+
+  /** Replaces files contained in this {@code Module} by {@code files}. */
+  public Module containing(File... files) {
+    this.files = files;
+    return this;
+  }
 
   /**
-   * A {@code Module} constructor.
-   *
-   * @param name its name
-   * @param files the files it contains
+   * Returns a file located at the relative path given by {@code fragment} and containing {@code
+   * contents}.
    */
-  public Module(String name, Map<String, String> files) {
-    this.name = name;
-    this.files = files;
+  public static File file(String fragment, String contents) {
+    return new File(fragment, contents);
   }
 
   /** The name of this {@code Module}. */
@@ -48,18 +58,13 @@ public class Module {
 
   /** Returns an iterable view of all the files contained in this module. */
   public Iterable<File> files() {
-    List<File> l = new ArrayList<>();
-    for (Map.Entry<String, String> f : files.entrySet()) {
-      l.add(new File(f.getKey(), f.getValue()));
-    }
-
-    return l;
+    return Arrays.asList(files);
   }
 
   /** A system agnostic description of a file in a Java module. */
   public static class File {
-    private String fragment;
-    private String content;
+    private final String fragment;
+    private final String contents;
 
     /**
      * A path fragment pointing to this {@code File}.
@@ -73,13 +78,13 @@ public class Module {
     }
 
     /** This {@code File}'s contents. */
-    public String content() {
-      return content;
+    public String contents() {
+      return contents;
     }
 
-    private File(String fragment, String content) {
+    private File(String fragment, String contents) {
       this.fragment = fragment;
-      this.content = content;
+      this.contents = contents;
     }
   }
 }

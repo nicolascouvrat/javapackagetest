@@ -46,7 +46,7 @@ class MavenExporter implements Exporter {
     for (Module.File f : module.files()) {
       Path fullpath = filename(to.root(), module.name(), f.fragment());
       Files.createDirectories(fullpath.getParent());
-      Files.write(fullpath, f.content().getBytes(UTF_8));
+      Files.write(fullpath, f.contents().getBytes(UTF_8));
       to.markAsWritten(module.name(), f.fragment(), fullpath);
     }
   }
