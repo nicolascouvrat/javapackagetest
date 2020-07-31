@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.fail;
 
+import com.google.common.truth.Correspondence;
 import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
@@ -13,8 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.DefaultModelReader;
@@ -39,7 +42,8 @@ public class MavenExporterTest {
                 Module.file("b/B.java", "package an.awesome.module.b;"));
     Module anOtherModule =
         Module.named("an.other.module")
-            .containing(Module.file("C.java", "package an.other.module;"));
+            .containing(Module.file("C.java", "package an.other.module;"))
+            .dependingOn(Module.dependency("my.dependency", "a-dependency"));
 
     try {
       out = Export.of(BuildSystem.MAVEN, anAwesomeModule, anOtherModule);
@@ -72,7 +76,7 @@ public class MavenExporterTest {
     checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
     checkPomContent(out, "an.awesome.module", checkDependencies());
-    checkPomContent(out, "an.other.module", checkDependencies());
+    checkPomContent(out, "an.other.module", checkDependencies("my.dependency", "a-dependency", ""));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
@@ -115,6 +119,25 @@ public class MavenExporterTest {
       deps.add(dep);
     }
 
-    return model -> assertThat(model.getDependencies()).containsExactlyElementsIn(deps);
+    return model ->
+        assertThat(model.getDependencies())
+            .comparingElementsUsing(
+                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
+            .containsExactlyElementsIn(deps);
+  }
+
+  // There is not implementation of equals() in the Dependency class
+  private boolean dependenciesEquivalent(@Nullable Dependency a, @Nullable Dependency b) {
+    if ((a == null) != (b == null)) {
+      return false;
+    }
+
+    if (a == null) {
+      return true;
+    }
+
+    return Objects.equals(a.getGroupId(), b.getGroupId())
+        && Objects.equals(a.getArtifactId(), b.getArtifactId())
+        && Objects.equals(a.getVersion(), b.getVersion());
   }
 }
