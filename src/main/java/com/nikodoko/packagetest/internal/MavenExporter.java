@@ -10,8 +10,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelWriter;
@@ -42,7 +45,7 @@ class MavenExporter implements Exporter {
   }
 
   private void exportModule(Module module, Exported to) throws IOException {
-    writePom(module, to, minimalPom(artifactName(module.name())));
+    writePom(module, to, minimalPom(module));
     for (Module.File f : module.files()) {
       Path fullpath = filename(to.root(), module.name(), f.fragment());
       Files.createDirectories(fullpath.getParent());
@@ -86,17 +89,30 @@ class MavenExporter implements Exporter {
     return module.replace(".", "");
   }
 
-  private String artifactName(String module) {
-    return module.replace(".", "-");
-  }
-
-  private Model minimalPom(String artifactId) {
+  private Model minimalPom(Module module) {
     Model m = new Model();
     m.setModelVersion(PROJECT_MODEL_VERSION);
     m.setGroupId(PROJECT_GROUP_ID);
     m.setVersion(PROJECT_VERSION);
-    m.setArtifactId(artifactId);
+    m.setArtifactId(artifactId(module));
+    m.setDependencies(dependencies(module));
     return m;
+  }
+
+  private String artifactId(Module module) {
+    return module.name().replace(".", "-");
+  }
+
+  private List<Dependency> dependencies(Module module) {
+    List<Dependency> dependencies = new ArrayList<>();
+    for (Module.Dependency moduleDependency : module.dependencies()) {
+      Dependency dependency = new Dependency();
+      dependency.setGroupId(moduleDependency.groupId());
+      dependency.setArtifactId(moduleDependency.artifactId());
+      dependencies.add(dependency);
+    }
+
+    return dependencies;
   }
 
   private void writePom(Module module, Exported to, Model pom) throws IOException {

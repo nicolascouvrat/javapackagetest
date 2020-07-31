@@ -80,6 +80,11 @@ public class Module {
     return Arrays.asList(files);
   }
 
+  /** Returns an iterable view of all the dependencies of this module. */
+  public Iterable<Dependency> dependencies() {
+    return Arrays.asList(dependencies);
+  }
+
   /** A system agnostic description of a dependency. */
   public static class Dependency {
     private final String groupId;

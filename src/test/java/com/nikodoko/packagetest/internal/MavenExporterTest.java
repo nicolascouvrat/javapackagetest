@@ -76,7 +76,8 @@ public class MavenExporterTest {
     checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
     checkPomContent(out, "an.awesome.module", checkDependencies());
-    checkPomContent(out, "an.other.module", checkDependencies("my.dependency", "a-dependency", ""));
+    checkPomContent(
+        out, "an.other.module", checkDependencies("my.dependency", "a-dependency", null));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
