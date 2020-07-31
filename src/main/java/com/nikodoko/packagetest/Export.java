@@ -5,7 +5,6 @@ import com.nikodoko.packagetest.internal.ExporterFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Creates temporary projects on disk to test tools on.
@@ -28,8 +27,8 @@ import java.util.List;
  *
  *   &#064;Test
  *   public void test() {
- *     List&#060;Module&#062; modules;
  *     // populate modules with whatever project you want exported
+ *     Module[] modules;
  *     project = Export.of(BuildSystem.MAVEN, modules);
  *     // now ready to run test on the generated project...
  *   }
@@ -52,13 +51,13 @@ public class Export {
    * Exported#cleanup} must be called on the result to remove all created files and folders.
    *
    * @param buildSystem the build system to use
-   * @param modules a list of modules to export
+   * @param modules an array of modules to export
    * @return information about the successful export
    * @throws IOException if an I/O error occurs
    */
-  public static Exported of(BuildSystem buildSystem, List<Module> modules) throws IOException {
+  public static Exported of(BuildSystem buildSystem, Module... modules) throws IOException {
     Path temp = Files.createTempDirectory(PREFIX);
     Exporter exporter = ExporterFactory.create(buildSystem);
-    return exporter.export(modules, temp);
+    return exporter.export(temp, modules);
   }
 }

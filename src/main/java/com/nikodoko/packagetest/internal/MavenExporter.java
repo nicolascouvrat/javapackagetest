@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.model.io.DefaultModelWriter;
@@ -33,7 +32,7 @@ class MavenExporter implements Exporter {
   }
 
   @Override
-  public Exported export(List<Module> modules, Path root) throws IOException {
+  public Exported export(Path root, Module... modules) throws IOException {
     Exported to = new Exported(root);
     writePom(createPom(PROJECT_ROOT_ARTIFACT_ID), root, "");
     for (Module m : modules) {
