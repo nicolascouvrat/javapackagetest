@@ -1,6 +1,7 @@
 package com.nikodoko.packagetest.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.fail;
 
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import org.apache.maven.model.Dependency;
@@ -43,7 +45,9 @@ public class MavenExporterTest {
     Module anOtherModule =
         Module.named("an.other.module")
             .containing(Module.file("C.java", "package an.other.module;"))
-            .dependingOn(Module.dependency("my.dependency", "a-dependency"));
+            .dependingOn(
+                Module.dependency("my.dependency", "a-dependency"),
+                Module.dependency("my.dependency", "another-dependency", "1.0"));
 
     try {
       out = Export.of(BuildSystem.MAVEN, anAwesomeModule, anOtherModule);
@@ -77,7 +81,13 @@ public class MavenExporterTest {
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
     checkPomContent(out, "an.awesome.module", checkDependencies());
     checkPomContent(
-        out, "an.other.module", checkDependencies("my.dependency", "a-dependency", null));
+        out,
+        "an.other.module",
+        checkDependencies(
+            "my.dependency", "a-dependency", null, "my.dependency", "another-dependency", null),
+        checkDependencyManagement(
+            "my.dependency", "another-dependency", "${another-dependency.version}"),
+        checkProperties("another-dependency.version", "1.0"));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
@@ -94,11 +104,13 @@ public class MavenExporterTest {
     assertThat((Object) got).isEqualTo(expect);
   }
 
-  private void checkPomContent(Exported result, String module, Consumer<Model> checker)
+  private void checkPomContent(Exported result, String module, Consumer<Model>... checkers)
       throws Exception {
     Path written = getFile(result, module, "pom.xml");
     Model model = new DefaultModelReader().read(written.toFile(), null);
-    checker.accept(model);
+    for (Consumer<Model> checker : checkers) {
+      checker.accept(model);
+    }
   }
 
   private Path getFile(Exported result, String module, String fragment) {
@@ -111,8 +123,35 @@ public class MavenExporterTest {
   }
 
   private Consumer<Model> checkDependencies(String... params) {
+    return model ->
+        assertThat(model.getDependencies())
+            .comparingElementsUsing(
+                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
+            .containsExactlyElementsIn(dependenciesFromParams(params));
+  }
+
+  private Consumer<Model> checkProperties(String... properties) {
+    return model -> {
+      Properties props = model.getProperties();
+      for (int i = 0; i < properties.length; i = i + 2) {
+        assertWithMessage("wrong property value for " + properties[i])
+            .that(props.getProperty(properties[i]))
+            .isEqualTo(properties[i + 1]);
+      }
+    };
+  }
+
+  private Consumer<Model> checkDependencyManagement(String... params) {
+    return model ->
+        assertThat(model.getDependencyManagement().getDependencies())
+            .comparingElementsUsing(
+                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
+            .containsExactlyElementsIn(dependenciesFromParams(params));
+  }
+
+  private List<Dependency> dependenciesFromParams(String... params) {
     List<Dependency> deps = new ArrayList<>();
-    for (int i = 0; i < params.length / 3; i++) {
+    for (int i = 0; i < params.length; i = i + 3) {
       Dependency dep = new Dependency();
       dep.setGroupId(params[i]);
       dep.setArtifactId(params[i + 1]);
@@ -120,11 +159,7 @@ public class MavenExporterTest {
       deps.add(dep);
     }
 
-    return model ->
-        assertThat(model.getDependencies())
-            .comparingElementsUsing(
-                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
-            .containsExactlyElementsIn(deps);
+    return deps;
   }
 
   // There is not implementation of equals() in the Dependency class

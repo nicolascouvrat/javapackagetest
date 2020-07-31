@@ -12,9 +12,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelWriter;
@@ -24,10 +26,10 @@ class MavenExporter implements Exporter {
   private static final Pattern TEST_FILE_RE = Pattern.compile(".+Test\\.java");
   private static final String MAIN_DIRECTORY = "src/main/java";
   private static final String TEST_DIRECTORY = "src/test/java";
-  private static final String PROJECT_ROOT_ARTIFACT_ID = "packagetest-maven";
   private static final String PROJECT_GROUP_ID = "packagetest.maven";
   private static final String PROJECT_MODEL_VERSION = "4.0.0";
   private static final String PROJECT_VERSION = "1.0.0";
+  private static final String VERSION_PROPERTY_TEMPLATE = "%s.version";
 
   @Override
   public String name() {
@@ -96,6 +98,8 @@ class MavenExporter implements Exporter {
     m.setVersion(PROJECT_VERSION);
     m.setArtifactId(artifactId(module));
     m.setDependencies(dependencies(module));
+    m.setDependencyManagement(dependencyManagement(module));
+    m.setProperties(properties(module));
     return m;
   }
 
@@ -113,6 +117,42 @@ class MavenExporter implements Exporter {
     }
 
     return dependencies;
+  }
+
+  private DependencyManagement dependencyManagement(Module module) {
+    DependencyManagement dependencyManagement = new DependencyManagement();
+    List<Dependency> dependencies = new ArrayList<>();
+    for (Module.Dependency moduleDependency : module.dependencies()) {
+      if (moduleDependency.version().equals("")) {
+        continue;
+      }
+
+      Dependency dependency = new Dependency();
+      dependency.setGroupId(moduleDependency.groupId());
+      dependency.setArtifactId(moduleDependency.artifactId());
+      dependency.setVersion(
+          String.format(
+              "${%s}", String.format(VERSION_PROPERTY_TEMPLATE, moduleDependency.artifactId())));
+      dependencies.add(dependency);
+    }
+
+    dependencyManagement.setDependencies(dependencies);
+    return dependencyManagement;
+  }
+
+  private Properties properties(Module module) {
+    Properties props = new Properties();
+    for (Module.Dependency moduleDependency : module.dependencies()) {
+      if (moduleDependency.version().equals("")) {
+        continue;
+      }
+
+      props.setProperty(
+          String.format(VERSION_PROPERTY_TEMPLATE, moduleDependency.artifactId()),
+          moduleDependency.version());
+    }
+
+    return props;
   }
 
   private void writePom(Module module, Exported to, Model pom) throws IOException {
