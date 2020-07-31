@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
@@ -22,7 +23,7 @@ public class MavenExporterTest {
 
   @After
   public void cleanup() throws Exception {
-    // out.cleanup();
+    out.cleanup();
   }
 
   @Test
@@ -41,7 +42,7 @@ public class MavenExporterTest {
             new Module("an.other.module", ImmutableMap.of("C.java", "package an.other.module;")));
 
     try {
-      out = Export.of(Kind.MAVEN, modules);
+      out = Export.of(BuildSystem.MAVEN, modules);
     } catch (IOException e) {
       fail(e.getMessage());
     }

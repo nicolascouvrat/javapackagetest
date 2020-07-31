@@ -10,7 +10,7 @@ import java.util.List;
  * {@code Exporter} implementations are responsible for turning generic project descriptions into
  * system specific architectures.
  *
- * <p>See {@link Kind} for a list of exporters available.
+ * <p>See {@link BuildSystem} for a list of exporters available.
  */
 public interface Exporter {
   /**
