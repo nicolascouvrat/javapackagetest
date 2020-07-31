@@ -57,7 +57,6 @@ public class MyToolTest {
     // You now how the following structure to work with
     // some_temporary_folder
     //  |
-    //  - pom.xml
     //  - myfirstmodule
     //  | |
     //  | - pom.xml
@@ -111,7 +110,6 @@ public class MyToolTest {
     // You now how the following structure to work with
     // some_temporary_folder
     //  |
-    //  - pom.xml
     //  - myfirstmodule
     //  | |
     //  | - pom.xml
