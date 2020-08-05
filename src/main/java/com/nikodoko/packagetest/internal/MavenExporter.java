@@ -36,15 +36,15 @@ class MavenExporter implements Exporter {
 
   @Override
   public Exported export(Path root, Module... modules) throws IOException {
-    Exported to = new Exported(root);
+    ExportedBuilder to = new ExportedBuilder().root(root);
     for (Module m : modules) {
       exportModule(m, to);
     }
 
-    return to;
+    return to.build();
   }
 
-  private void exportModule(Module module, Exported to) throws IOException {
+  private void exportModule(Module module, ExportedBuilder to) throws IOException {
     writePom(module, to, minimalPom(module));
     for (Module.File f : module.files()) {
       Path fullpath = filename(to.root(), module.name(), f.fragment());
@@ -147,7 +147,7 @@ class MavenExporter implements Exporter {
     return props;
   }
 
-  private void writePom(Module module, Exported to, Model pom) throws IOException {
+  private void writePom(Module module, ExportedBuilder to, Model pom) throws IOException {
     ModelWriter writer = new DefaultModelWriter();
     Path target = to.root().resolve(Paths.get(moduleName(module.name()), "pom.xml"));
     writer.write(target.toFile(), null, pom);
