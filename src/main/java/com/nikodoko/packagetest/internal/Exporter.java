@@ -1,5 +1,6 @@
 package com.nikodoko.packagetest.internal;
 
+import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
 import java.io.IOException;
