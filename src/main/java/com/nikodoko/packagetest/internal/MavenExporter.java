@@ -1,7 +1,5 @@
 package com.nikodoko.packagetest.internal;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.nikodoko.packagetest.Exported;
@@ -57,12 +55,6 @@ class MavenExporter implements Exporter {
   }
 
   private Path filename(Path root, String module, String fragment) {
-    checkNotNull(root, "root path should not be null");
-    checkNotNull(module, "module name should not be null");
-    checkNotNull(fragment, "path fragment should not be null");
-    checkArgument(!module.equals(""), "module name should not be empty");
-    checkArgument(!fragment.equals(""), "path fragment should not be empty");
-
     return root.resolve(relativePath(module, fragment));
   }
 
