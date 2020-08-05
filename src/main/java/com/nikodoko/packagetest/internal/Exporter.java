@@ -1,16 +1,16 @@
-package com.nikodoko.packagetest.exporters;
+package com.nikodoko.packagetest.internal;
 
+import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * {@code Exporter} implementations are responsible for turning generic project descriptions into
  * system specific architectures.
  *
- * <p>See {@link Kind} for a list of exporters available.
+ * <p>See {@link BuildSystem} for a list of exporters available.
  */
 public interface Exporter {
   /**
@@ -28,5 +28,5 @@ public interface Exporter {
    * @return information about the successful export
    * @throws IOException if an I/O error occurs
    */
-  public Exported export(List<Module> modules, Path root) throws IOException;
+  public Exported export(Path root, Module... modules) throws IOException;
 }

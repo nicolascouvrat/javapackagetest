@@ -1,7 +1,5 @@
 package com.nikodoko.packagetest;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,15 +16,11 @@ public class Exported {
   private static final Path EMPTY = Paths.get("");
 
   private Path root;
-  private Map<String, Map<String, Path>> written = new HashMap<>();
+  private Map<String, Map<String, Path>> written;
 
-  /**
-   * An {@code Exported} constructor.
-   *
-   * @param root its root directory
-   */
-  public Exported(Path root) {
+  public Exported(Path root, Map<String, Map<String, Path>> written) {
     this.root = root;
+    this.written = written;
   }
 
   /** Returns the directory at the root of this {@code Exported} data. */
@@ -50,24 +44,6 @@ public class Exported {
   }
 
   /**
-   * Signal that a file has been written at the given {@code path}.
-   *
-   * @param module a module name
-   * @param fragment a path fragment
-   * @param path the path at which the file has been written
-   */
-  public void markAsWritten(String module, String fragment, Path path) {
-    checkNotNull(path, "why mark a null path as written?");
-    Map<String, Path> moduleFiles = written.get(module);
-    if (moduleFiles == null) {
-      moduleFiles = new HashMap<>();
-      written.put(module, moduleFiles);
-    }
-
-    moduleFiles.put(fragment, path);
-  }
-
-  /**
    * Removes the directory at the root of this {@code Exported} and all its contents.
    *
    * <p>This is safe to call multiple times.
@@ -82,5 +58,6 @@ public class Exported {
     Files.walk(root).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 
     root = EMPTY;
+    written = new HashMap<>();
   }
 }
