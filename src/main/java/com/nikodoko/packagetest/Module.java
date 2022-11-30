@@ -65,6 +65,18 @@ public class Module {
     return new Dependency(groupId, artifactId, version);
   }
 
+  /**
+   * Return a test dependency with the given {@code groupdId}, {@code artifactId} and {@code
+   * version}.
+   *
+   * <p>A test dependency is to be used only in tests. This can be translated differently depending
+   * on the {@link BuildSystem} used. For example, if using {@code BuildSystem.MAVEN}, this
+   * dependency will have a {@code <type>test</type>} field in its model.
+   */
+  public static Dependency dependency(String groupId, String artifactId, String version) {
+    return new Dependency(groupId, artifactId, version);
+  }
+
   /** Return a dependency with the given {@code groupdId}, {@code artifactId} and no version. */
   public static Dependency dependency(String groupId, String artifactId) {
     return new Dependency(groupId, artifactId, "");
@@ -87,9 +99,18 @@ public class Module {
 
   /** A system agnostic description of a dependency. */
   public static class Dependency {
+    /** A {@link Dependency}'s type */
+    public static enum Type {
+      /** A dependency that is used all the time. */
+      DEFAULT,
+      /** A dependency only used in tests. */
+      TEST;
+    }
+
     private final String groupId;
     private final String artifactId;
     private final String version;
+    private final Type type;
 
     /** This {@code Dependency}'s groupId. */
     public String groupId() {
@@ -106,10 +127,16 @@ public class Module {
       return version;
     }
 
-    private Dependency(String groupId, String artifactId, String version) {
+    /** This {@code Dependency}'s type */
+    public Type type() {
+      return type;
+    }
+
+    private Dependency(String groupId, String artifactId, String version, Type type) {
       this.groupId = groupId;
       this.artifactId = artifactId;
       this.version = version;
+      this.type = type;
     }
   }
 
