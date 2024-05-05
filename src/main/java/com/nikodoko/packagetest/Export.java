@@ -5,6 +5,8 @@ import com.nikodoko.packagetest.internal.ExporterFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Creates temporary projects on disk to test tools on.
@@ -56,8 +58,26 @@ public class Export {
    * @throws IOException if an I/O error occurs
    */
   public static Exported of(BuildSystem buildSystem, Module... modules) throws IOException {
+    return of(buildSystem, List.of(), Arrays.asList(modules));
+  }
+
+  /**
+   * Writes a test directory given a build system and system agnostic module descriptions.
+   *
+   * <p>Returns an {@link Exported} object containing the results of the export. {@link
+   * Exported#cleanup} must be called on the result to remove all created files and folders.
+   *
+   * @param buildSystem the build system to use
+   * @param modules an array of modules to export
+   * @param repositories an array of repositories containing external dependencies for the modules
+   * @return information about the successful export
+   * @throws IOException if an I/O error occurs
+   */
+  public static Exported of(
+      BuildSystem buildSystem, List<Repository> repositories, List<Module> modules)
+      throws IOException {
     Path temp = Files.createTempDirectory(PREFIX);
     Exporter exporter = ExporterFactory.create(buildSystem);
-    return exporter.export(temp, modules);
+    return exporter.export(temp, repositories, modules);
   }
 }

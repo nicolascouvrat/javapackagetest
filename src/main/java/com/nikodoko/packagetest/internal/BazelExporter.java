@@ -4,11 +4,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
+import com.nikodoko.packagetest.Repository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,9 +28,10 @@ public class BazelExporter implements Exporter {
   }
 
   @Override
-  public Exported export(Path root, Module... modules) throws IOException {
+  public Exported export(Path root, List<Repository> repositories, List<Module> modules)
+      throws IOException {
     ExportedBuilder to = new ExportedBuilder().root(root);
-    writeRootModule(to, modules);
+    writeRootModule(to, repositories, modules);
     for (Module m : modules) {
       exportModule(m, to);
     }
@@ -37,15 +39,16 @@ public class BazelExporter implements Exporter {
     return to.build();
   }
 
-  private void writeRootModule(ExportedBuilder to, Module... modules) throws IOException {
+  private void writeRootModule(
+      ExportedBuilder to, List<Repository> repositories, List<Module> modules) throws IOException {
     Set<Module.Dependency> deps = gatherDependencies(modules);
     Path target = to.root().resolve("MODULE.bazel");
     BazelFileWriter.writeModule(target, deps);
     to.markAsWritten("", "MODULE.bazel", target);
   }
 
-  private Set<Module.Dependency> gatherDependencies(Module... modules) {
-    return Arrays.stream(modules)
+  private Set<Module.Dependency> gatherDependencies(List<Module> modules) {
+    return modules.stream()
         .flatMap(m -> StreamSupport.stream(m.dependencies().spliterator(), false))
         .collect(Collectors.toSet());
   }
