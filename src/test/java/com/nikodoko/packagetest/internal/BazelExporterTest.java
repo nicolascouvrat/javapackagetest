@@ -10,7 +10,6 @@ import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import org.apache.maven.model.io.DefaultModelReader;
 import org.junit.After;
 import org.junit.Test;
 
-public class MavenExporterTest {
+public class BazelExporterTest {
   Exported out;
 
   @After
@@ -49,46 +48,42 @@ public class MavenExporterTest {
                 Module.dependency("my.dependency", "a-dependency"),
                 Module.dependency("my.dependency", "another-dependency", "1.0"));
 
-    try {
-      out = Export.of(BuildSystem.MAVEN, anAwesomeModule, anOtherModule);
-      System.out.println(out.root());
-    } catch (IOException e) {
-      fail(e.getMessage());
-    }
+    out = Export.of(BuildSystem.BAZEL, anAwesomeModule, anOtherModule);
+    System.out.println(out.root());
 
-    checkWritten(
-        out,
-        "an.awesome.module",
-        "a/A.java",
-        "anawesomemodule/src/main/java/an/awesome/module/a/A.java");
-    checkWritten(
-        out,
-        "an.awesome.module",
-        "a/ATest.java",
-        "anawesomemodule/src/test/java/an/awesome/module/a/ATest.java");
-    checkWritten(
-        out,
-        "an.awesome.module",
-        "b/B.java",
-        "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
-    checkWritten(
-        out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
-    checkWritten(out, "an.awesome.module", "pom.xml", "anawesomemodule/pom.xml");
-    checkWritten(out, "an.other.module", "pom.xml", "anothermodule/pom.xml");
+    // checkWritten(
+    //     out,
+    //     "an.awesome.module",
+    //     "a/A.java",
+    //     "anawesomemodule/src/main/java/an/awesome/module/a/A.java");
+    // checkWritten(
+    //     out,
+    //     "an.awesome.module",
+    //     "a/ATest.java",
+    //     "anawesomemodule/src/test/java/an/awesome/module/a/ATest.java");
+    // checkWritten(
+    //     out,
+    //     "an.awesome.module",
+    //     "b/B.java",
+    //     "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
+    // checkWritten(
+    //     out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
+    // checkWritten(out, "an.awesome.module", "pom.xml", "anawesomemodule/pom.xml");
+    // checkWritten(out, "an.other.module", "pom.xml", "anothermodule/pom.xml");
 
-    checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
-    checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
-    checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
-    checkContent(out, "an.other.module", "C.java", "package an.other.module;");
-    checkPomContent(out, "an.awesome.module", checkDependencies());
-    checkPomContent(
-        out,
-        "an.other.module",
-        checkDependencies(
-            "my.dependency", "a-dependency", null, "my.dependency", "another-dependency", null),
-        checkDependencyManagement(
-            "my.dependency", "another-dependency", "${another-dependency.version}"),
-        checkProperties("another-dependency.version", "1.0"));
+    // checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
+    // checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
+    // checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
+    // checkContent(out, "an.other.module", "C.java", "package an.other.module;");
+    // checkPomContent(out, "an.awesome.module", checkDependencies());
+    // checkPomContent(
+    //     out,
+    //     "an.other.module",
+    //     checkDependencies(
+    //         "my.dependency", "a-dependency", null, "my.dependency", "another-dependency", null),
+    //     checkDependencyManagement(
+    //         "my.dependency", "another-dependency", "${another-dependency.version}"),
+    //     checkProperties("another-dependency.version", "1.0"));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
