@@ -44,7 +44,7 @@
     <java.version>1.8</java.version>
     <java.target>1.8</java.target>
     <truth.version>1.0.1</truth.version>
-    <maven.core.version>3.6.3</maven.core.version>
+    <maven.core.version>3.8.1</maven.core.version>
   </properties>
 
   <dependencyManagement>
