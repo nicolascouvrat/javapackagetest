@@ -57,7 +57,7 @@ public class MyToolTest {
             .containing(Module.file("C.java", "package my.second.module"));
 
     project = Export.of(BuildSystem.MAVEN, m1, m2);
-    // You now how the following structure to work with
+    // You now have the following structure to work with
     // some_temporary_folder
     //  |
     //  - myfirstmodule
@@ -112,7 +112,7 @@ public class MyToolTest {
             .containing(Module.file("C.java", "package my.second.module"));
 
     project = Export.of(BuildSystem.BAZEL, m1, m2);
-    // You now how the following structure to work with
+    // You now have the following structure to work with
     // some_temporary_folder
     //  - MODULE.bazel
     //  - myfirstmodule
