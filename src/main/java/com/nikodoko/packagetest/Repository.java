@@ -17,4 +17,12 @@ public class Repository {
     this.url = url;
     return this;
   }
+
+  public String name() {
+    return name;
+  }
+
+  public String url() {
+    return url;
+  }
 }

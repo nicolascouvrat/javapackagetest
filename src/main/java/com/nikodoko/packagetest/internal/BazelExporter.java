@@ -5,6 +5,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
 import com.nikodoko.packagetest.Repository;
+import com.nikodoko.packagetest.internal.bazel.BuildFile;
+import com.nikodoko.packagetest.internal.bazel.ModuleFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +33,7 @@ public class BazelExporter implements Exporter {
   public Exported export(Path root, List<Repository> repositories, List<Module> modules)
       throws IOException {
     ExportedBuilder to = new ExportedBuilder().root(root);
-    writeRootModule(to, repositories, modules);
+    writeModuleFile(to, repositories, modules);
     for (Module m : modules) {
       exportModule(m, to);
     }
@@ -39,11 +41,16 @@ public class BazelExporter implements Exporter {
     return to.build();
   }
 
-  private void writeRootModule(
+  private void writeModuleFile(
       ExportedBuilder to, List<Repository> repositories, List<Module> modules) throws IOException {
     Set<Module.Dependency> deps = gatherDependencies(modules);
     Path target = to.root().resolve("MODULE.bazel");
-    BazelFileWriter.writeModule(target, deps);
+    ModuleFile mf =
+        ModuleFile.builder()
+            .artifacts(deps.stream().map(BazelExporter::toModuleDep).toList())
+            .repositories(repositories.stream().map(BazelExporter::toModuleRepo).toList())
+            .build();
+    mf.write(target);
     to.markAsWritten("", "MODULE.bazel", target);
   }
 
@@ -66,7 +73,18 @@ public class BazelExporter implements Exporter {
   private void writeBuildFile(Module module, ExportedBuilder to) throws IOException {
     Path target = to.root().resolve(Paths.get(moduleName(module.name()), "BUILD.bazel"));
     Files.createDirectories(target.getParent());
-    BazelFileWriter.writeBuild(target, module, MAIN_DIRECTORY);
+    BuildFile bf =
+        BuildFile.builder()
+            .targetName(module.name())
+            .srcs(buildSrcGlob())
+            .srcsGlob()
+            .deps(
+                StreamSupport.stream(module.dependencies().spliterator(), false)
+                    .map(BazelExporter::toBuildDep)
+                    .toList())
+            .build();
+
+    bf.write(target);
     to.markAsWritten(module.name(), "BUILD.bazel", target);
   }
 
@@ -95,5 +113,24 @@ public class BazelExporter implements Exporter {
 
   private String moduleName(String module) {
     return module.replace(".", "");
+  }
+
+  private static String buildSrcGlob() {
+    return String.format("%s/**/*.java", MAIN_DIRECTORY);
+  }
+
+  private static String toBuildDep(Module.Dependency d) {
+    return String.format(
+        "@maven//:%s_%s",
+        d.groupId().replace('-', '_').replace('.', '_'),
+        d.artifactId().replace('-', '_').replace('.', '_'));
+  }
+
+  private static String toModuleDep(Module.Dependency d) {
+    return String.format("%s:%s:%s", d.groupId(), d.artifactId(), d.version());
+  }
+
+  private static String toModuleRepo(Repository r) {
+    return r.url();
   }
 }

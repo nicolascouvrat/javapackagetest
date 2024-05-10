@@ -1,27 +1,22 @@
 package com.nikodoko.packagetest.internal;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.fail;
 
-import com.google.common.truth.Correspondence;
 import com.nikodoko.packagetest.BuildSystem;
 import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
+import com.nikodoko.packagetest.Repository;
+import com.nikodoko.packagetest.internal.bazel.BuildFile;
+import com.nikodoko.packagetest.internal.bazel.ModuleFile;
+import java.io.PushbackReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.DefaultModelReader;
 import org.junit.After;
 import org.junit.Test;
 
@@ -44,46 +39,46 @@ public class BazelExporterTest {
     Module anOtherModule =
         Module.named("an.other.module")
             .containing(Module.file("C.java", "package an.other.module;"))
-            .dependingOn(
-                Module.dependency("my.dependency", "a-dependency"),
-                Module.dependency("my.dependency", "another-dependency", "1.0"));
+            .dependingOn(Module.dependency("com.mycompany.app", "another-dependency", "1.0"));
+    Repository repo = Repository.named("local").at("file:///Users/nicolas.couvrat/.m2/repository");
 
-    out = Export.of(BuildSystem.BAZEL, anAwesomeModule, anOtherModule);
+    out = Export.of(BuildSystem.BAZEL, List.of(repo), List.of(anAwesomeModule, anOtherModule));
     System.out.println(out.root());
 
-    // checkWritten(
-    //     out,
-    //     "an.awesome.module",
-    //     "a/A.java",
-    //     "anawesomemodule/src/main/java/an/awesome/module/a/A.java");
-    // checkWritten(
-    //     out,
-    //     "an.awesome.module",
-    //     "a/ATest.java",
-    //     "anawesomemodule/src/test/java/an/awesome/module/a/ATest.java");
-    // checkWritten(
-    //     out,
-    //     "an.awesome.module",
-    //     "b/B.java",
-    //     "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
-    // checkWritten(
-    //     out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
-    // checkWritten(out, "an.awesome.module", "pom.xml", "anawesomemodule/pom.xml");
-    // checkWritten(out, "an.other.module", "pom.xml", "anothermodule/pom.xml");
+    checkWritten(
+        out,
+        "an.awesome.module",
+        "a/A.java",
+        "anawesomemodule/src/main/java/an/awesome/module/a/A.java");
+    checkWritten(
+        out,
+        "an.awesome.module",
+        "a/ATest.java",
+        "anawesomemodule/src/test/java/an/awesome/module/a/ATest.java");
+    checkWritten(
+        out,
+        "an.awesome.module",
+        "b/B.java",
+        "anawesomemodule/src/main/java/an/awesome/module/b/B.java");
+    checkWritten(
+        out, "an.other.module", "C.java", "anothermodule/src/main/java/an/other/module/C.java");
+    checkWritten(out, "an.awesome.module", "BUILD.bazel", "anawesomemodule/BUILD.bazel");
+    checkWritten(out, "an.other.module", "BUILD.bazel", "anothermodule/BUILD.bazel");
+    checkWritten(out, "", "MODULE.bazel", "MODULE.bazel");
 
-    // checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
-    // checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
-    // checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
-    // checkContent(out, "an.other.module", "C.java", "package an.other.module;");
-    // checkPomContent(out, "an.awesome.module", checkDependencies());
-    // checkPomContent(
-    //     out,
-    //     "an.other.module",
-    //     checkDependencies(
-    //         "my.dependency", "a-dependency", null, "my.dependency", "another-dependency", null),
-    //     checkDependencyManagement(
-    //         "my.dependency", "another-dependency", "${another-dependency.version}"),
-    //     checkProperties("another-dependency.version", "1.0"));
+    checkContent(out, "an.awesome.module", "a/A.java", "package an.awesome.module.a;");
+    checkContent(out, "an.awesome.module", "a/ATest.java", "package an.awesome.module.a;");
+    checkContent(out, "an.awesome.module", "b/B.java", "package an.awesome.module.b;");
+    checkContent(out, "an.other.module", "C.java", "package an.other.module;");
+    checkBuildContent(
+        out,
+        "an.other.module",
+        checkBuildDeps("@maven//:com_mycompany_app_another_dependency"),
+        checkBuildSrcs("src/main/java/**/*.java"));
+    checkModuleContent(
+        out,
+        checkModuleDeps("com.mycompany.app:another-dependency:1.0"),
+        checkModuleRepos("file:///Users/nicolas.couvrat/.m2/repository"));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)
@@ -100,12 +95,33 @@ public class BazelExporterTest {
     assertThat((Object) got).isEqualTo(expect);
   }
 
-  private void checkPomContent(Exported result, String module, Consumer<Model>... checkers)
+  private void checkBuildContent(Exported result, String module, Consumer<BuildFile>... checkers)
       throws Exception {
-    Path written = getFile(result, module, "pom.xml");
-    Model model = new DefaultModelReader().read(written.toFile(), null);
-    for (Consumer<Model> checker : checkers) {
-      checker.accept(model);
+    Path written = getFile(result, module, "BUILD.bazel");
+    // Expected sources as glob
+    BuildFile file = BuildFile.builder().srcsGlob().build();
+    file.read(new PushbackReader(Files.newBufferedReader(written)));
+
+    assertThat(file.name()).isEqualTo(module);
+    for (Consumer<BuildFile> checker : checkers) {
+      checker.accept(file);
+    }
+  }
+
+  private void checkModuleContent(Exported result, Consumer<ModuleFile>... checkers)
+      throws Exception {
+    Path written = getFile(result, "", "MODULE.bazel");
+    // Expected sources as glob
+    ModuleFile file = ModuleFile.builder().build();
+    try {
+      file.read(new PushbackReader(Files.newBufferedReader(written)));
+    } catch (Exception e) {
+      System.out.println(new String(Files.readAllBytes(written), UTF_8));
+      throw e;
+    }
+
+    for (Consumer<ModuleFile> checker : checkers) {
+      checker.accept(file);
     }
   }
 
@@ -118,58 +134,19 @@ public class BazelExporterTest {
     return written.get();
   }
 
-  private Consumer<Model> checkDependencies(String... params) {
-    return model ->
-        assertThat(model.getDependencies())
-            .comparingElementsUsing(
-                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
-            .containsExactlyElementsIn(dependenciesFromParams(params));
+  private Consumer<BuildFile> checkBuildDeps(String... expected) {
+    return f -> assertThat(f.deps()).containsExactlyElementsIn(expected);
   }
 
-  private Consumer<Model> checkProperties(String... properties) {
-    return model -> {
-      Properties props = model.getProperties();
-      for (int i = 0; i < properties.length; i = i + 2) {
-        assertWithMessage("wrong property value for " + properties[i])
-            .that(props.getProperty(properties[i]))
-            .isEqualTo(properties[i + 1]);
-      }
-    };
+  private Consumer<BuildFile> checkBuildSrcs(String... expected) {
+    return f -> assertThat(f.srcs()).containsExactlyElementsIn(expected);
   }
 
-  private Consumer<Model> checkDependencyManagement(String... params) {
-    return model ->
-        assertThat(model.getDependencyManagement().getDependencies())
-            .comparingElementsUsing(
-                Correspondence.from(this::dependenciesEquivalent, "equivalent to"))
-            .containsExactlyElementsIn(dependenciesFromParams(params));
+  private Consumer<ModuleFile> checkModuleDeps(String... expected) {
+    return f -> assertThat(f.artifacts()).containsExactlyElementsIn(expected);
   }
 
-  private List<Dependency> dependenciesFromParams(String... params) {
-    List<Dependency> deps = new ArrayList<>();
-    for (int i = 0; i < params.length; i = i + 3) {
-      Dependency dep = new Dependency();
-      dep.setGroupId(params[i]);
-      dep.setArtifactId(params[i + 1]);
-      dep.setVersion(params[i + 2]);
-      deps.add(dep);
-    }
-
-    return deps;
-  }
-
-  // There is not implementation of equals() in the Dependency class
-  private boolean dependenciesEquivalent(@Nullable Dependency a, @Nullable Dependency b) {
-    if ((a == null) != (b == null)) {
-      return false;
-    }
-
-    if (a == null) {
-      return true;
-    }
-
-    return Objects.equals(a.getGroupId(), b.getGroupId())
-        && Objects.equals(a.getArtifactId(), b.getArtifactId())
-        && Objects.equals(a.getVersion(), b.getVersion());
+  private Consumer<ModuleFile> checkModuleRepos(String... expected) {
+    return f -> assertThat(f.repositories()).containsExactlyElementsIn(expected);
   }
 }
