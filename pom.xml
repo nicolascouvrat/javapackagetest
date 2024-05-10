@@ -4,7 +4,7 @@
   <groupId>com.nikodoko.javapackagetest</groupId>
   <artifactId>javapackagetest</artifactId>
   <packaging>jar</packaging>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
 
   <name>Java Package Test</name>
 
@@ -35,7 +35,7 @@
     <url>http://github.com/nicolascouvrat/javapackagetest</url>
     <connection>scm:git:git://github.com/nicolascouvrat/javapackagetest</connection>
     <developerConnection>scm:git:ssh://git@github.com/nicolascouvrat/javapackagetest.git</developerConnection>
-    <tag>javapackagetest-1.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
