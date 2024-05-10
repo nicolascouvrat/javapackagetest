@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
+import com.nikodoko.packagetest.Repository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +36,8 @@ class MavenExporter implements Exporter {
   }
 
   @Override
-  public Exported export(Path root, Module... modules) throws IOException {
+  public Exported export(Path root, List<Repository> repositories, List<Module> modules)
+      throws IOException {
     ExportedBuilder to = new ExportedBuilder().root(root);
     for (Module m : modules) {
       exportModule(m, to);

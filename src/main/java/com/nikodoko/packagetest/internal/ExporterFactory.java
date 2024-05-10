@@ -9,10 +9,12 @@ public class ExporterFactory {
   /** Creates an {@link Exporter} for a given {@link BuildSystem}. */
   public static Exporter create(BuildSystem type) {
     switch (type) {
+      case BAZEL:
+        return new BazelExporter();
       case MAVEN:
         return new MavenExporter();
+      default:
+        throw new IllegalArgumentException("unknown build system: " + type);
     }
-
-    throw new IllegalArgumentException("unknown build system: " + type);
   }
 }

@@ -31,7 +31,7 @@ public class MavenExporterTest {
 
   @After
   public void cleanup() throws Exception {
-    out.cleanup();
+    // out.cleanup();
   }
 
   @Test
@@ -51,6 +51,7 @@ public class MavenExporterTest {
 
     try {
       out = Export.of(BuildSystem.MAVEN, anAwesomeModule, anOtherModule);
+      System.out.println(out.root());
     } catch (IOException e) {
       fail(e.getMessage());
     }
