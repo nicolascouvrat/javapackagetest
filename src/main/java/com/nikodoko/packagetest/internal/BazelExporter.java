@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class BazelExporter implements Exporter {
+class BazelExporter implements Exporter {
   private static final String NAME = "BAZEL_EXPORTER";
   private static final String MAIN_DIRECTORY = "src/main/java";
   private static final String TEST_DIRECTORY = "src/test/java";

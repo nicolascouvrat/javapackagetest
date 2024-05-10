@@ -26,6 +26,7 @@ public interface Exporter {
    * Exports a project to a given {@code root} directory.
    *
    * @param modules a list of modules forming a project
+   * @param repositories a list of repositories in which dependencies for the project are located
    * @param root a path to a root directory
    * @return information about the successful export
    * @throws IOException if an I/O error occurs
