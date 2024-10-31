@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 class BazelExporter implements Exporter {
@@ -79,8 +80,11 @@ class BazelExporter implements Exporter {
             .srcs(buildSrcGlob())
             .srcsGlob()
             .deps(
-                StreamSupport.stream(module.dependencies().spliterator(), false)
-                    .map(BazelExporter::toBuildDep)
+                Stream.concat(
+                        StreamSupport.stream(module.dependencies().spliterator(), false)
+                            .map(BazelExporter::toBuildDep),
+                        StreamSupport.stream(module.moduleDependencies().spliterator(), false)
+                            .map(BazelExporter::toBuildDep))
                     .toList())
             .build();
 
@@ -111,12 +115,16 @@ class BazelExporter implements Exporter {
     return Paths.get(moduleName(module), directory, module.replace(".", "/"), fragment);
   }
 
-  private String moduleName(String module) {
+  private static String moduleName(String module) {
     return module.replace(".", "");
   }
 
   private static String buildSrcGlob() {
     return String.format("%s/**/*.java", MAIN_DIRECTORY);
+  }
+
+  private static String toBuildDep(Module m) {
+    return String.format("//%s:%s", moduleName(m.name()), m.name());
   }
 
   private static String toBuildDep(Module.Dependency d) {

@@ -1,6 +1,8 @@
 package com.nikodoko.packagetest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A system agnostic description of a java module.
@@ -28,6 +30,7 @@ public class Module {
   private final String name;
   private File[] files = new File[] {};
   private Dependency[] dependencies = new Dependency[] {};
+  private List<Module> moduleDependencies = new ArrayList<>();
 
   private Module(String name) {
     this.name = name;
@@ -47,6 +50,12 @@ public class Module {
   /** Replaces dependencies of this {@code Module} by {@code dependencies}. */
   public Module dependingOn(Dependency... dependencies) {
     this.dependencies = dependencies;
+    return this;
+  }
+
+  /** Adds {@code dependencies} to the dependencies of this {@code Module}. */
+  public Module dependingOn(Module... dependencies) {
+    this.moduleDependencies.addAll(Arrays.asList(dependencies));
     return this;
   }
 
@@ -83,6 +92,11 @@ public class Module {
   /** Returns an iterable view of all the dependencies of this module. */
   public Iterable<Dependency> dependencies() {
     return Arrays.asList(dependencies);
+  }
+
+  /** Returns an iterable view of all the module dependencies of this module. */
+  public Iterable<Module> moduleDependencies() {
+    return moduleDependencies;
   }
 
   /** A system agnostic description of a dependency. */
