@@ -30,19 +30,23 @@ public class BazelExporterTest {
 
   @Test
   public void testExport() throws Exception {
+    Module anOtherModule =
+        Module.named("an.other.module")
+            .containing(Module.file("C.java", "package an.other.module;"))
+            .dependingOn(Module.dependency("com.mycompany.app", "another-dependency", "1.0"));
     Module anAwesomeModule =
         Module.named("an.awesome.module")
             .containing(
                 Module.file("a/A.java", "package an.awesome.module.a;"),
                 Module.file("a/ATest.java", "package an.awesome.module.a;"),
-                Module.file("b/B.java", "package an.awesome.module.b;"));
-    Module anOtherModule =
-        Module.named("an.other.module")
-            .containing(Module.file("C.java", "package an.other.module;"))
-            .dependingOn(Module.dependency("com.mycompany.app", "another-dependency", "1.0"));
+                Module.file("b/B.java", "package an.awesome.module.b;"))
+            .dependingOn(anOtherModule);
     Repository repo = Repository.named("local").at("file:///Users/nicolas.couvrat/.m2/repository");
+    Repository repoCentral = Repository.named("central").at("https://repo1.maven.org/maven2");
 
-    out = Export.of(BuildSystem.BAZEL, List.of(repo), List.of(anAwesomeModule, anOtherModule));
+    out =
+        Export.of(
+            BuildSystem.BAZEL, List.of(repo, repoCentral), List.of(anAwesomeModule, anOtherModule));
     System.out.println(out.root());
 
     checkWritten(
@@ -72,13 +76,19 @@ public class BazelExporterTest {
     checkContent(out, "an.other.module", "C.java", "package an.other.module;");
     checkBuildContent(
         out,
+        "an.awesome.module",
+        checkBuildDeps("//anothermodule:an.other.module"),
+        checkBuildSrcs("src/main/java/**/*.java"));
+    checkBuildContent(
+        out,
         "an.other.module",
         checkBuildDeps("@maven//:com_mycompany_app_another_dependency"),
         checkBuildSrcs("src/main/java/**/*.java"));
     checkModuleContent(
         out,
         checkModuleDeps("com.mycompany.app:another-dependency:1.0"),
-        checkModuleRepos("file:///Users/nicolas.couvrat/.m2/repository"));
+        checkModuleRepos(
+            "file:///Users/nicolas.couvrat/.m2/repository", "https://repo1.maven.org/maven2"));
   }
 
   private void checkContent(Exported result, String module, String fragment, String expected)

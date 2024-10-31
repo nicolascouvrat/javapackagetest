@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BuildFile extends BzlCode {
+  private static final BzlList<BzlString> VISIBILITY_PUBLIC =
+      new BzlList<>(BzlString.factory(), List.of(new BzlString("//visibility:public")));
+
   private final BzlString name;
   private final BzlList<BzlString> srcs;
   private final BzlList<BzlString> deps;
@@ -32,6 +35,7 @@ public class BuildFile extends BzlCode {
                 "java_library",
                 new BzlAssignmentExpression("name", name),
                 new BzlAssignmentExpression("srcs", srcsExpr),
+                new BzlAssignmentExpression("visibility", VISIBILITY_PUBLIC),
                 new BzlAssignmentExpression("deps", deps))));
   }
 

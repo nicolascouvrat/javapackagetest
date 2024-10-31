@@ -102,6 +102,10 @@ class MavenExporter implements Exporter {
   }
 
   private List<Dependency> dependencies(Module module) {
+    if (module.moduleDependencies().iterator().hasNext()) {
+      throw new IllegalArgumentException(NAME + " does not support module dependencies");
+    }
+
     List<Dependency> dependencies = new ArrayList<>();
     for (Module.Dependency moduleDependency : module.dependencies()) {
       Dependency dependency = new Dependency();

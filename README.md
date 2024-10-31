@@ -270,15 +270,17 @@ public class MyToolTest {
 
   @Test
   public void test() {
+    Module m0 = Module.named("my.extra.module");
     Module m1 =
         Module.named("my.first.module")
             .containing(
                 Module.file("A.java", "package my.first.module"),
+            .dependingOn(m0)
             .dependingOn(
                 Module.dependency("my.other.module", "other-module", "1.1.1"),
                 Module.dependency("com.google.guava", "guava", "1.0"));
 
-    project = Export.of(BuildSystem.BAZEL, m1);
+    project = Export.of(BuildSystem.BAZEL, m0, m1);
     // The resulting MODULE.bazel at the root will contain the following:
     // bazel_dep(name = "rules_jvm_external", version = "6.1")
     // 
@@ -294,7 +296,7 @@ public class MyToolTest {
     // java_library(
     //     name = "an.other.module",
     //     srcs = glob(["src/main/java/**/*.java"]),
-    //     deps = ["@maven//:my_other_module_other_module", "@maven//:com_google_guava_guava"],
+    //     deps = ["@maven//:my_other_module_other_module", "@maven//:com_google_guava_guava", "//myfirstmodule:my.first.module"],
     // )
   }
 }
