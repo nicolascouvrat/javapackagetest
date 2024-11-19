@@ -1,11 +1,11 @@
 package com.nikodoko.packagetest.internal;
 
 import com.nikodoko.packagetest.BuildSystem;
+import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
 import com.nikodoko.packagetest.Repository;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -31,6 +31,7 @@ public interface Exporter {
    * @return information about the successful export
    * @throws IOException if an I/O error occurs
    */
-  public Exported export(Path root, List<Repository> repositories, List<Module> modules)
+  public Exported export(
+      List<Repository> repositories, List<Module> modules, Export.Options options)
       throws IOException;
 }

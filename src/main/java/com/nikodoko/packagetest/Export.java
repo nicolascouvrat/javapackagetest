@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Creates temporary projects on disk to test tools on.
@@ -46,6 +47,50 @@ public class Export {
 
   private Export() {}
 
+  /** Options for the export of temporary projects. */
+  public static class Options {
+    private final Path root;
+
+    private Options(Path root) {
+      this.root = root;
+    }
+
+    /** The directory in which projects will be created. */
+    public Path root() {
+      return root;
+    }
+
+    public static Builder builder() {
+      return new Builder();
+    }
+
+    public static Options defaults() {
+      return builder().build();
+    }
+
+    public static class Builder {
+      private Optional<Path> root = Optional.empty();
+
+      /**
+       * Sets the directory to use for creating projects.
+       *
+       * <p>By default, a temporary directory will be created.
+       */
+      public Builder usingRoot(Path path) {
+        this.root = Optional.of(path);
+        return this;
+      }
+
+      public Options build() {
+        try {
+          return new Options(root.orElse(Files.createTempDirectory(PREFIX)));
+        } catch (IOException e) {
+          throw new RuntimeException("Cannot create temporary directory", e);
+        }
+      }
+    }
+  }
+
   /**
    * Writes a test directory given a build system and system agnostic module descriptions.
    *
@@ -76,8 +121,26 @@ public class Export {
   public static Exported of(
       BuildSystem buildSystem, List<Repository> repositories, List<Module> modules)
       throws IOException {
-    Path temp = Files.createTempDirectory(PREFIX);
+    return of(buildSystem, repositories, modules, Options.defaults());
+  }
+
+  /**
+   * Writes a test directory given a build system and system agnostic module descriptions.
+   *
+   * <p>Returns an {@link Exported} object containing the results of the export. {@link
+   * Exported#cleanup} must be called on the result to remove all created files and folders.
+   *
+   * @param buildSystem the build system to use
+   * @param modules an array of modules to export
+   * @param repositories an array of repositories containing external dependencies for the modules
+   * @param options options to use for creating projects
+   * @return information about the successful export
+   * @throws IOException if an I/O error occurs
+   */
+  public static Exported of(
+      BuildSystem buildSystem, List<Repository> repositories, List<Module> modules, Options options)
+      throws IOException {
     Exporter exporter = ExporterFactory.create(buildSystem);
-    return exporter.export(temp, repositories, modules);
+    return exporter.export(repositories, modules, options);
   }
 }
