@@ -2,6 +2,7 @@ package com.nikodoko.packagetest.internal;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.nikodoko.packagetest.Export;
 import com.nikodoko.packagetest.Exported;
 import com.nikodoko.packagetest.Module;
 import com.nikodoko.packagetest.Repository;
@@ -31,9 +32,10 @@ class BazelExporter implements Exporter {
   }
 
   @Override
-  public Exported export(Path root, List<Repository> repositories, List<Module> modules)
+  public Exported export(
+      List<Repository> repositories, List<Module> modules, Export.Options options)
       throws IOException {
-    ExportedBuilder to = new ExportedBuilder().root(root);
+    ExportedBuilder to = new ExportedBuilder().root(options.root());
     writeModuleFile(to, repositories, modules);
     for (Module m : modules) {
       exportModule(m, to);
