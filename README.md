@@ -366,6 +366,22 @@ public class MyToolTest {
 }
 ```
 
+### Further options
+
+If you need finer control of where `javapackagetest` projects will be created on disk, you can use
+the `Options` class. For example:
+
+```java
+var project = Export.of(
+  BuildSystem.BAZEL,
+  List.of(repo1, repo2),
+  List.of(m1),
+  Export.Options.builder().usingRoot(Paths.get("my/folder").build()));
+```
+
+This can be useful, for example for Bazel projects as this will result in a single download of the
+Bazel toolchain as opposed to one per export (and so faster tests!).
+
 ## Credits
 
 This library is inspired by a similar one found in Go's internal `packages` (`go/packages/packagetest`).
